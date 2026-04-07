@@ -114,16 +114,15 @@ class RecorderApp:
         frame_patient = ttk.LabelFrame(self.root, text="Пациент")
         frame_patient.pack(fill="x", **PAD)
 
-        vcmd = (self.root.register(self._validate_digits), "%P")
-
         ttk.Label(frame_patient, text="ID пациента:").grid(row=0, column=0, padx=8, pady=4, sticky="w")
         self.patient_id_var = tk.StringVar()
         self.patient_id_var.trace_add("write", self._on_patient_id_change)
+
         self.id_entry = ttk.Entry(frame_patient, textvariable=self.patient_id_var,
-                                  width=12, font=("Segoe UI", 11),
-                                  validate="key", validatecommand=vcmd)
+                                  width=12, font=("Segoe UI", 11))
         self.id_entry.grid(row=0, column=1, padx=4, pady=4, sticky="w")
-        ttk.Label(frame_patient, text="(только цифры)",
+
+        ttk.Label(frame_patient, text="(любые символы)",
                   foreground="gray").grid(row=0, column=2, padx=8, sticky="w")
 
         ttk.Label(frame_patient, text="Номер приёма:").grid(row=1, column=0, padx=8, pady=4, sticky="w")
@@ -285,11 +284,11 @@ class RecorderApp:
 
     def _on_patient_id_change(self, *_):
         pid = self.patient_id_var.get().strip()
-        if pid.isdigit() and pid:
+        if pid:
             next_s = get_next_session(pid)
             self.session_var.set(next_s)
-            hint = "новый пациент" if next_s == 0 else f"последний был приём {next_s - 1}"
-            self.session_hint.config(text=f"← авто ({hint})")
+            hint = "новая папка" if next_s == 0 else f"последний приём был {next_s - 1}"
+            self.session_hint.config(text=f"← {hint}")
             folder = DESKTOP_VR / f"{pid}_{next_s}"
             self.folder_label.config(text=str(folder))
         else:
@@ -315,8 +314,8 @@ class RecorderApp:
     # ── Старт ───────────────────────────────
     def _start(self):
         patient_id = self.patient_id_var.get().strip()
-        if not patient_id or not patient_id.isdigit():
-            messagebox.showerror("Ошибка", "Введите ID пациента (только цифры).")
+        if not patient_id:
+            messagebox.showerror("Ошибка", "Введите ID пациента.")
             return
 
         session_num  = self.session_var.get()
